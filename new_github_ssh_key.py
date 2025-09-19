@@ -8,11 +8,57 @@ import json
 from datetime import datetime
 
 try:
-    import requests
-except ImportError:
-    print("Python 'requests' library is missing. Installing...")
-    subprocess.run([sys.executable, "-m", "pip", "install", "requests"], check=True)
-    import requests
+    import requests  # type: ignore
+except Exception:
+    import urllib.request
+    import urllib.error
+
+    class _SimpleResponse:
+        def __init__(self, status_code, text):
+            self.status_code = status_code
+            self.text = text
+
+        def json(self):
+            try:
+                return json.loads(self.text)
+            except Exception:
+                return None
+
+    class _RequestsShim:
+        @staticmethod
+        def _request(method, url, headers=None, data=None):
+            if headers is None:
+                headers = {}
+            req_data = None
+            if data is not None:
+                # data may be bytes or a str
+                req_data = data.encode("utf-8") if isinstance(data, str) else data
+                # ensure a content-type if not provided and data looks like JSON
+                if "Content-Type" not in {k.title(): v for k, v in (headers.items() if isinstance(headers, dict) else [])} and isinstance(data, str):
+                    headers.setdefault("Content-Type", "application/json")
+            req = urllib.request.Request(url, data=req_data, headers=headers, method=method)
+            try:
+                with urllib.request.urlopen(req) as resp:
+                    body = resp.read().decode("utf-8")
+                    return _SimpleResponse(resp.getcode(), body)
+            except urllib.error.HTTPError as e:
+                try:
+                    body = e.read().decode("utf-8")
+                except Exception:
+                    body = ""
+                return _SimpleResponse(e.code, body)
+            except Exception as e:
+                return _SimpleResponse(0, str(e))
+
+        @staticmethod
+        def get(url, headers=None):
+            return _RequestsShim._request("GET", url, headers=headers)
+
+        @staticmethod
+        def post(url, headers=None, data=None):
+            return _RequestsShim._request("POST", url, headers=headers, data=data)
+
+    requests = _RequestsShim()
 
 
 def run_command(command, check=True, capture_output=False, text=True, shell=True, input=None):
