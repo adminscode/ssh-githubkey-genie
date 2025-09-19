@@ -1,174 +1,118 @@
-# New-GitHubSSHKey.ps1
+# GitHub SSH Key Setup Scripts
 
-## Overview
+This repository provides two scripts to automate the process of creating and configuring SSH keys for GitHub.
 
-`New-GitHubSSHKey.ps1` is a PowerShell automation script that creates and configures a new SSH key for GitHub. It removes the manual steps of generating keys, starting the SSH agent, adding keys, and copying the public key to your clipboard.
-
-With this script, you only need to run it once, answer a couple of prompts, and you’ll be ready to add the new SSH key to your GitHub account.
+- **PowerShell Script**: `New-GitHubSSHKey.ps1` (Windows only)
+- **Python Script**: `new_github_ssh_key.py` (Cross-platform: Windows, macOS, Linux)
 
 ---
 
 ## Features
 
-- Prompts for your **GitHub email address** (used as the key comment).
-- Prompts for an **optional passphrase** (adds extra security).
-- Creates an **Ed25519 SSH key** (recommended by GitHub).
-- Backs up any existing key (`id_ed25519` and `.pub`) before generating a new one.
-- Ensures the `.ssh` folder exists.
-- Attempts to **enable and start the ssh-agent** service.
+### PowerShell Script
+- Prompts for GitHub email address and optional passphrase.
+- Creates a new Ed25519 SSH key.
+- Backs up existing `id_ed25519` keys with a timestamp.
+- Ensures `.ssh` directory exists.
+- Enables and starts `ssh-agent`.
 - Adds the new key to `ssh-agent`.
-- Copies the **public key** to the clipboard.
-- Displays the key fingerprint.
+- Copies the public key to the clipboard.
+- Shows the fingerprint.
+- Tests the GitHub SSH connection.
+
+### Python Script
+- Cross-platform: runs on Windows, macOS, and Linux.
+- Interactive prompts for:
+  - GitHub email
+  - Passphrase (optional)
+  - GitHub token (optional, for automatic upload)
+- Displays a **prerequisite checklist**.
+- Installs missing requirements where possible:
+  - OpenSSH tools (`ssh-keygen`, `ssh-agent`, `ssh-add`)
+  - `xclip` (Linux only)
+  - `requests` Python library
+- Backs up old keys before generating new ones.
+- Generates an Ed25519 SSH key.
+- Starts `ssh-agent` and adds the key.
+- Copies public key to clipboard.
+- Shows fingerprint.
+- Validates GitHub token before upload.
+- Uploads public key directly to GitHub using the API.
 - Tests the GitHub SSH connection.
 
 ---
 
 ## Requirements
 
-- **Windows 10/11** with the **OpenSSH Client** installed.  
-  (Most recent Windows installs include it by default. If not, install with:)  
-
+### PowerShell Script
+- Windows 10/11
+- PowerShell 5.1 or later
+- OpenSSH Client installed:
   ```powershell
   Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
   ```
 
-- PowerShell 5.1 or later.
-- Internet access (to test the connection to GitHub).
+### Python Script
+- Python 3.6+
+- Internet access
+- Clipboard utilities:
+  - Windows: `clip` (built-in)
+  - macOS: `pbcopy` (built-in)
+  - Linux: `xclip` (auto-installed if missing)
+- GitHub personal access token (classic) with `admin:public_key` scope  
+  (only required for automatic key upload)
 
 ---
 
 ## Usage
 
-1. Save the script as `New-GitHubSSHKey.ps1`.
-2. Open **PowerShell as Administrator** (recommended for starting services).
-3. Run:
-
+### PowerShell Version
+1. Open **PowerShell as Administrator**.
+2. Run:
    ```powershell
    .\New-GitHubSSHKey.ps1
    ```
+3. Follow prompts for email and passphrase.
+4. The public key will be copied to clipboard.  
+   Paste it into GitHub → Settings → SSH and GPG keys.
 
-4. Enter your GitHub email address when prompted.
-5. Enter a passphrase (optional – press Enter for none).
-6. The script will:
-   - Generate a new SSH key.
-   - Add it to `ssh-agent`.
-   - Copy the `.pub` key to your clipboard.
-   - Show the fingerprint and test GitHub.
-
----
-
-## Adding the Key to GitHub
-
-1. Go to [GitHub → Settings → SSH and GPG keys](https://github.com/settings/keys).
-2. Click **New SSH key**.
-3. Paste the key from your clipboard.
-4. Save.
+### Python Version
+1. Run the script:
+   ```bash
+   python new_github_ssh_key.py
+   ```
+2. Provide inputs when prompted:
+   - GitHub email
+   - Passphrase (optional)
+   - GitHub token (optional, only for auto-upload)
+3. The script will:
+   - Check prerequisites and install missing ones
+   - Generate a new SSH key
+   - Add it to `ssh-agent`
+   - Copy the public key to clipboard
+   - Show the fingerprint
+   - Upload the key to GitHub (if token provided)
+   - Test the GitHub connection
 
 ---
 
 ## Testing the Setup
 
-The script runs a test automatically:
+Both scripts run:
 
-```powershell
+```bash
 ssh -T git@github.com
 ```
 
-If everything is configured correctly, you should see:
+Expected output if configured correctly:
 
-Hi `your-username`! You've successfully authenticated, but GitHub does not provide shell access.
-
----
-
-## Example Output
-
-Running the script typically looks like this (your output may vary):
-
-== GitHub SSH Key Setup ==
-Enter your GitHub email address: `you@example.com`
-Enter a passphrase (or leave blank for none):
-
-Generating SSH key...
-Key added to ssh-agent.
-Your public key has been copied to the clipboard.
-Paste it into GitHub -> Settings -> SSH and GPG keys -> New SSH key.
-256 SHA256:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx [you@example.com](mailto:you@example.com) (ED25519)
-
-Testing GitHub connection...
-Hi you! You've successfully authenticated, but GitHub does not provide shell access.
 ```
-
-### Notes on Output Variations
-
-- If `ssh-agent` is **already running**, you may not see the "started" message.  
-- If `ssh-agent` fails to start, the script prints a warning and you can start it manually.  
-- If you already have a key, the script will back it up and tell you where it was saved.  
-- The GitHub connection test may show a warning the first time:
-
-  ```shell
-  The authenticity of host 'github.com (IP)' can't be established.
-  Are you sure you want to continue connecting (yes/no/[fingerprint])?
-  ```
-
-  Type `yes` to continue.
-
----
-
-## Troubleshooting
-
-### `ssh-agent` cannot be started
-
-- Ensure you are running PowerShell **as Administrator**.
-- Try enabling the service manually:
-
-  ```powershell
-  Set-Service -Name ssh-agent -StartupType Automatic
-  Start-Service ssh-agent
-  ```
-
-- As a fallback, run:
-
-  ```powershell
-  sc.exe config ssh-agent start=auto
-  sc.exe start ssh-agent
-  ```
-
-### `Permission denied (publickey)` when testing
-
-- Confirm your public key was copied correctly:
-
-  ```powershell
-  Get-Content $HOME\.ssh\id_ed25519.pub
-  ```
-
-- Ensure you pasted it into GitHub under  
-  **Settings → SSH and GPG keys → New SSH key**.
-- Verify your key is loaded into the agent:
-
-  ```powershell
-  ssh-add -l
-  ```
-
-  If no key is listed, add it manually:
-
-  ```powershell
-  ssh-add $HOME\.ssh\id_ed25519
-  ```
-
-### No `ssh-keygen` found
-
-- Install the OpenSSH Client:
-
-  ```powershell
-  Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
-  ```
+Hi <username>! You've successfully authenticated, but GitHub does not provide shell access.
+```
 
 ---
 
 ## Notes
-
-- Existing keys (`id_ed25519` and `id_ed25519.pub`) are automatically backed up with a timestamp.
-- Ed25519 is the recommended algorithm. Use RSA 4096-bit only if Ed25519 isn’t supported.
-- The script is designed for **GitHub**, but the key can also be used for other services (GitLab, Bitbucket, etc.).
-
----
+- Existing keys are automatically backed up with a timestamp.
+- Ed25519 is the preferred key type. Use RSA only if required.
+- The Python script is recommended for cross-platform environments and full automation.
