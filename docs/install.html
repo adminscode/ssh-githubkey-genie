@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Install - SSH GitHub Key Genie</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <h1>SSH GitHub Key Genie</h1>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="install.html">Install</a></li>
+        <li><a href="usage.html">Usage</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="highlight">
+      <h2>Installation</h2>
+      <p>Choose your platform and follow the steps below to set up <strong>SSH GitHub Key Genie</strong>.</p>
+
+      <h3>Windows (PowerShell)</h3>
+      <ol>
+        <li>Clone the repository:
+          <pre><code>git clone https://github.com/adminscode/ssh-githubkey-genie.git</code></pre>
+        </li>
+        <li>Open PowerShell and navigate into the repo folder:
+          <pre><code>cd ssh-githubkey-genie</code></pre>
+        </li>
+        <li>Run the script:
+          <pre><code>.\new-github-ssh-key.ps1</code></pre>
+        </li>
+      </ol>
+
+      <h3>Linux / macOS (Python)</h3>
+      <ol>
+        <li>Clone the repository:
+          <pre><code>git clone https://github.com/adminscode/ssh-githubkey-genie.git</code></pre>
+        </li>
+        <li>Ensure you have Python 3 installed:
+          <pre><code>python3 --version</code></pre>
+        </li>
+        <li>Navigate into the repo folder:
+          <pre><code>cd ssh-githubkey-genie</code></pre>
+        </li>
+        <li>Run the script:
+          <pre><code>python3 new_github_ssh_key.py</code></pre>
+        </li>
+      </ol>
+
+      <h3>Prerequisites</h3>
+      <ul>
+        <li><strong>Git</strong> — required to clone the repository.</li>
+        <li><strong>OpenSSH tools</strong> — for key generation and agent usage.</li>
+        <li><strong>Clipboard utilities</strong> (Linux only, e.g. <code>xclip</code> or <code>xsel</code>) for automatic key copying.</li>
+        <li><strong>GitHub Personal Access Token</strong> (optional) — required only if you want the script to upload your key automatically.</li>
+      </ul>
+
+      <h3>Verify installation</h3>
+      <p>After installation, test by running:</p>
+      <pre><code>ssh -T git@github.com</code></pre>
+      <p>If everything worked, GitHub will greet you by your username.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Made with ♥ by <a href="https://github.com/adminscode/ssh-githubkey-genie">adminscode</a></p>
+  </footer>
+</body>
+</html>
